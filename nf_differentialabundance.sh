@@ -13,21 +13,21 @@ export NXF_JVM_ARGS="-XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=75"
 export NXF_VER=25.10.4
 
 genomeVer=WS298
-genomeDir=/mnt/meister.data/publicData/genomes/${genomeVer}
-#gtfFile=${genomeDir}/c_elegans.PRJNA13758.${genomeVer}.canonical_geneset.gtf
-gtfFile=${genomeDir}/dfam35/${genomeVer}_canonicalgenes_Dfam3.5nr_repeats.uniq_gene_id.gtf
+genomeDir=/mnt/meister.data/publicData/genomes
+gtfFile=${genomeDir}/${genomeVer}/c_elegans.PRJNA13758.${genomeVer}.canonical_geneset.gtf
+#gtfFile=${genomeDir}/dfam35/${genomeVer}_canonicalgenes_Dfam3.5nr_repeats.uniq_gene_id.gtf
 
 WORK_DIR=/mnt/meister.data/FischleLab_KarthikEswara/ribo0seq
 CONFIG_FILE=/mnt/meister.data/nf-core/unibe_izb.config
 #SRR_FILE=${WORK_DIR}/SRR_file.csv
-lfcShrink=true
+lfcShrink=false
 minAbund=5
 minSamples=3
 
 suffix="noShrink"
 $lfcShrink && suffix="lfcShrink"
 
-ALIGNER="kallisto" # should be one of kallisto, salmon or star
+ALIGNER="star" # should be one of kallisto, salmon or star
 case "$ALIGNER" in
     kallisto)
         TABLE_PATH="kallisto/kallisto"
@@ -47,7 +47,7 @@ esac
 echo "Using aligner: $ALIGNER with $TABLE_PATH"
 
 
-runName=da2_${ALIGNER}_rpts_minAbund${minAbund}_minSamples${minSamples}_${suffix}
+runName=da3_${ALIGNER}_canonical_minAbund${minAbund}_minSamples${minSamples}_${suffix}
 
 
 samplesheet=${WORK_DIR}/samplesheet_all.csv
@@ -61,4 +61,4 @@ nextflow run nf-core/differentialabundance -profile rnaseq,singularity --input $
 	--matrix ${matrix} \
 	--transcript_length_matrix ${txptlength} \
 	--contrasts ${contrasts} \
-	--deseq2_shrink_lfc ${lfcShrink} --filtering_min_abundance ${minAbund} --filtering_min_samples ${minSamples}
+	--deseq2_shrink_lfc ${lfcShrink} --filtering_min_abundance ${minAbund} --filtering_min_samples ${minSamples} -resume
