@@ -6,8 +6,6 @@ library(BSgenome.Celegans.UCSC.ce11)
 genome<-Celegans
 dfamVer="Dfam_3.5"
 
-#args<-commandArgs(trailingOnly=TRUE)
-#workDir<-"/Volumes/external.data/MeisterLab/FischleLab_KarthikEswara/ribo0seq/scripts_repeats"
 repeatDir<-"/Volumes/meister.data/publicData/genomes/dfam35"
 
 dir.create(repeatDir)
