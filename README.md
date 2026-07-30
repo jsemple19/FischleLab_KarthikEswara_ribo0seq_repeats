@@ -6,5 +6,11 @@ Nonredunant genome annotations for repeats were obtained fom [Dfam database vers
 
 Repeat classification was downloaded with [FamDB tools](https://github.com/Dfam-consortium/FamDB) for Dfam version 4.0, and then merged with Dfam 3.5 annotations using the `getRepeatAnnotation.R`script.
 
+## Downloading RNAseq from ENA
+
+RNAseq samples were downloaded from ENA usig a list of ids recovered from the database
+
+## Alignment with nf-core/rnaseq
+
 
 
