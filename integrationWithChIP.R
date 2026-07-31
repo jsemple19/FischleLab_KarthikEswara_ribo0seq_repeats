@@ -161,7 +161,7 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/euler_au
        plot = p1, width = 15, height = 15,units="cm")
 
 
-
+## boxplots -------
 if(length(levels(res$group))>3){
   colorSet<-c(brewer.pal(nrow(contrasts)-3, "Dark2"),"#6accdd","#f5ed20","#bf60a5")
   colorSet3<-c("#6accdd","#f5ed20","#bf60a5")
@@ -216,7 +216,7 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/boxplot_
 
 
 
-## violinplot
+## violinplots -----
 ylimits<-c(-3,6)
 p2aa<-ggplot(ss1,aes(x=group,y=log2FoldChange,fill=group)) +
   geom_violin(width=0.9)+
@@ -259,7 +259,7 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/violin_l
 
 
 
-# create quantiles
+## boxplots by quantile ------
 ss<-ss[ss$batch=="EM88",]
 
 for(i in 1:nrow(bwdf)){
@@ -361,11 +361,10 @@ contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
 contrastsToKeep<-c(5,7,6)
 contrasts<-contrasts[contrastsToKeep,]
 
-## euler diagram -----
 padjVal=0.05
 lfcVal=0.5
 
-# all significant lfc>0.5 autosomal arm up genes
+### all significant lfc>0.5 autosomal arm up genes
 ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
                                     chrRegionType %in% c("arm","tip"),
                                    seqnames %in% seqnames(Celegans)[1:5],
@@ -379,7 +378,7 @@ for(g in levels(ss$group)){
   write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/txt/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms.txt"),row.names=F, quote=F,col.names=F)
 }
 
-# all significant lfc>0.5 autosomal arm up genes with triple peaks
+### all significant lfc>0.5 autosomal arm up genes with triple peaks
 ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
                                    chrRegionType %in% c("arm","tip"),
                                    seqnames %in% seqnames(Celegans)[1:5],
