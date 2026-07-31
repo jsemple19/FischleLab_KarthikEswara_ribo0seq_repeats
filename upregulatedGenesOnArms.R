@@ -321,3 +321,5 @@ p2a
 ggsave(filename = paste0(workDir, runName, "/custom/upregulatedOnArms/",prefix,"violin_lfcByGroup_autosomalArm",
                          "_allGenes.pdf"),
        plot = p2a, width = 7, height = 11,units="cm")
+
+

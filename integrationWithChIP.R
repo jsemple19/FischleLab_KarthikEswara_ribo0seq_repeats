@@ -358,11 +358,13 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/lfcByGro
 res<-readRDS(paste0(workDir,runName,"/custom/rds/_ChIPpeaks.results_annotated.RDS"))
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
-contrastsToKeep<-c(5,7,6)
+contrastsToKeep<-c(3,4,1,5,7,6)
 contrasts<-contrasts[contrastsToKeep,]
 
 padjVal=0.05
 lfcVal=0.5
+
+dir.create(paste0(workDir,runName,"/custom/GO"),showWarnings=F)
 
 ### all significant lfc>0.5 autosomal arm up genes
 ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
@@ -375,7 +377,7 @@ ss$group<-droplevels(ss$group)
 table(ss$group)
 
 for(g in levels(ss$group)){
-  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/txt/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms.txt"),row.names=F, quote=F,col.names=F)
+  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/GO/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms.txt"),row.names=F, quote=F,col.names=F)
 }
 
 ### all significant lfc>0.5 autosomal arm up genes with triple peaks
@@ -389,6 +391,15 @@ ss$group<-droplevels(ss$group)
 
 table(ss$group)
 
+forBed<-GRanges(ss)
+forBed$name<-forBed$gene_id
+forBed$score<-forBed$log2FoldChange
+
+dir.create(paste0(workDir,runName,"/custom/bed"),showWarnings=F)
+
 for(g in levels(ss$group)){
-  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/txt/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms_triplePeaks.txt"),row.names=F, quote=F,col.names=F)
+  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/GO/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms_triplePeaks.txt"),row.names=F, quote=F,col.names=F)
+  print(length(forBed[forBed$group==g]))
+  export.bed(forBed[forBed$group==g],paste0(workDir,runName,"/custom/bed/",g,"__sigUp_autosomalArms_triplePeaks.bed"))
 }
+
