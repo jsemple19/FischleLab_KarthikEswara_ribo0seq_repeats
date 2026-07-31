@@ -23,6 +23,8 @@ library(eulerr)
 library(ComplexUpset)
 library(ggVennDiagram)
 
+options(width=100)
+
 theme_set(
   theme_classic()+
     theme(panel.grid.major = element_blank(),
@@ -42,8 +44,9 @@ runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink"
 source(paste0(workDir,"/functions_finalFigures.R"))
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
+contrasts<-contrasts[contrasts$id!="EM38_vs_N2",]
 
-prefix="allSamples_"
+prefix="noEM38_"
 
 setwd(workDir)
 
@@ -57,8 +60,10 @@ dir.create(paste0(workDir,runName,"/custom/integrationWithChIP"), showWarnings =
 # genes
 results<-readRDS(paste0(workDir,runName,"/custom/rds/.results_annotated.RDS"))
 results$padj[is.na(results$padj)]<-1
-results$group<-factor(results$group,levels=contrasts$id)
-results$group<-relevel(results$group,ref="EM38_vs_N2")
+results<-results[results$group %in% contrasts$id,]
+results$group<-factor(results$group,levels=c("hpl2tm_vs_N2","lin61tm_vs_N2","Btm_vs_N2",
+                                             "EM90_vs_EM88","EM92_vs_EM88","EM91_vs_EM88"))
+#results$group<-relevel(results$group,ref="EM38_vs_N2")
 results<-results[results$seqnames!="MtDNA" & results$seqnames!="chrM",]
 
 res<-tableToGranges(results)
@@ -80,10 +85,10 @@ table(res$chrRegionType,res$group)
 
 
 # peaks overlapping individually
-bedFiles<-list.files(paste0(workDir,"/../GSE271919_ChIPseq/bed/"),pattern="_N2")
+bedFiles<-list.files(paste0(workDir,"/../GSE271919_ChIPseq_processed/bed/"),pattern="_N2")
 targets<-sapply(strsplit(bedFiles,"_"),"[[",1)
 chosen<-c(3,5,7)
-beddf<-data.frame(bedFiles=paste0(workDir,"/../GSE271919_ChIPseq/bed/",bedFiles[chosen]),targets=targets[chosen])
+beddf<-data.frame(bedFiles=paste0(workDir,"/../GSE271919_ChIPseq_processed/bed/",bedFiles[chosen]),targets=targets[chosen])
 beddf
 
 
@@ -98,10 +103,10 @@ peakCols<-grep("_peaks",colnames(mcols(res)))
 res$peakTypeNumber<-rowSums(data.frame(mcols(res)[,peakCols])>0)
 
 # signal
-bwFiles<-list.files(paste0(workDir,"/../GSE271919_ChIPseq/bigwig/"),pattern="_N2_merged")
+bwFiles<-list.files(paste0(workDir,"/../GSE271919_ChIPseq_processed/bigwig/"),pattern="_N2_merged")
 targets<-sapply(strsplit(bwFiles,"_"),"[[",1)
 chosen<-c(3,5,7)
-bwdf<-data.frame(bwFiles=paste0(workDir,"/../GSE271919_ChIPseq/bigwig/",bwFiles[chosen]),targets=targets[chosen])
+bwdf<-data.frame(bwFiles=paste0(workDir,"/../GSE271919_ChIPseq_processed/bigwig/",bwFiles[chosen]),targets=targets[chosen])
 bwdf
 
 bwdf$totalScore<-0
@@ -129,7 +134,7 @@ saveRDS(data.frame(res),paste0(workDir,runName,"/custom/rds/_ChIPpeaks.results_a
 res<-readRDS(paste0(workDir,runName,"/custom/rds/_ChIPpeaks.results_annotated.RDS"))
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
-contrastsToKeep<-c(2,1,3,4,5,7,6)
+contrastsToKeep<-c(3,4,1,5,7,6)
 contrasts<-contrasts[contrastsToKeep,]
 
 levels(res$group)<-contrasts$id
@@ -137,7 +142,7 @@ levels(res$group)<-contrasts$id
 
 ss<-res |> data.frame() |>  filter(chrRegionType %in% c("arm","tip"),
                    seqnames %in% seqnames(Celegans)[1:5],
-                   group=="EM38_vs_N2")
+                   group=="EM90_vs_EM88")
 
 table(ss$group)
 
@@ -159,6 +164,7 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/euler_au
 
 if(length(levels(res$group))>3){
   colorSet<-c(brewer.pal(nrow(contrasts)-3, "Dark2"),"#6accdd","#f5ed20","#bf60a5")
+  colorSet3<-c("#6accdd","#f5ed20","#bf60a5")
 } else {
   colorSet<-c("#6accdd","#f5ed20","#bf60a5")
 }
@@ -201,7 +207,7 @@ p2<-ggplot(ss,aes(x=group,y=log2FoldChange)) +
        y="log<sub>2</sub>FC")+
   theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1),
         axis.title.x=element_blank()) +
-  geom_vline(xintercept=4.5)
+  geom_vline(xintercept=3.5)
 p2
 
 ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/boxplot_lfcByGroup_autosomalArmTripleChIPpeaks.pdf"),
@@ -211,28 +217,44 @@ ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/boxplot_
 
 
 ## violinplot
-ylimits<-c(-4,4)
-p2a<-ggplot(ss,aes(x=group,y=log2FoldChange,fill=group)) +
+ylimits<-c(-3,6)
+p2aa<-ggplot(ss1,aes(x=group,y=log2FoldChange,fill=group)) +
   geom_violin(width=0.9)+
-  geom_boxplot(width=0.12,color="black",fill="white",alpha=1,outlier.shape=NA)  +
+  geom_boxplot(width=0.12,color="white",alpha=1,outlier.shape=NA)  +
   scale_fill_manual(values = colorSet)+
   coord_cartesian(ylim=ylimits) +
   geom_hline(yintercept=0,linetype="dashed",color="grey40")+
   #geom_text(data=obsCounts,aes(label=count,y=ylimits[1]*0.95),color="blue",angle=0,size=3) +
-  stat_pvalue_manual(data=tt1,label="p.adj.format",y.position=ylimits[2]*0.65,step.increase=0.04,
-                     angle=0, hide.ns=T,tip.length=0.01,label.size=3) +
-  stat_pvalue_manual(data=tt2,label="p.adj.format",y.position=ylimits[2]*0.65,step.increase=0.04,
+  stat_pvalue_manual(data=tt1,label="p.adj.format",y.position=ylimits[2]*0.7,step.increase=0.08,
                      angle=0, hide.ns=T,tip.length=0.01,label.size=3) +
   labs(title=paste0(length(unique(ss$gene_id)),
                     " genes on autosomal arms<br>with HPL-2/LIN-61/H3K9me2 ChIP peaks"),
        y="log<sub>2</sub>FC")+
   theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1),
-        axis.title.x=element_blank()) +
-  geom_vline(xintercept=4.5)
-p2a
+        axis.title.x=element_blank())
+p2aa
 
+## violinplot
+ylimits<-c(-3,4)
+p2ab<-ggplot(ss2,aes(x=group,y=log2FoldChange,fill=group)) +
+  geom_violin(width=0.9)+
+  geom_boxplot(width=0.12,color="white",alpha=1,outlier.shape=NA)  +
+  scale_fill_manual(values = c("#6accdd","#f5ed20","#bf60a5"))+
+  coord_cartesian(ylim=ylimits) +
+  geom_hline(yintercept=0,linetype="dashed",color="grey40")+
+  #geom_text(data=obsCounts,aes(label=count,y=ylimits[1]*0.95),color="blue",angle=0,size=3) +
+  stat_pvalue_manual(data=tt2,label="p.adj.format",y.position=ylimits[2]*0.8,step.increase=0.08,
+                     angle=0, hide.ns=T,tip.length=0.01,label.size=3) +
+  labs(title=paste0(length(unique(ss$gene_id)),
+                    " genes on autosomal arms<br>with HPL-2/LIN-61/H3K9me2 ChIP peaks"),
+       y="log<sub>2</sub>FC")+
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.title.x=element_blank())
+p2ab
 
-ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/violin_lfcByGroup_autosomalArmTripleChIPpeaks.pdf"),
+p2a<-ggarrange(p2aa,p2ab,ncol=2)
+
+ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/violin_lfcByGroup_autosomalArmTripleChIPpeaks_white.pdf"),
        plot = p2a, width = 12, height = 12,units="cm")
 
 
@@ -330,3 +352,44 @@ p
 ggsave(filename = paste0(workDir, runName, "/custom/integrationWithChIP/lfcByGroup_autosomalArmTripleChIPpeaks_quantile_wilcoxTest.pdf"),
        plot = p, width = 15, height = 30,units="cm")
 
+
+## output file lists of upregulated genes-------
+
+res<-readRDS(paste0(workDir,runName,"/custom/rds/_ChIPpeaks.results_annotated.RDS"))
+
+contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
+contrastsToKeep<-c(5,7,6)
+contrasts<-contrasts[contrastsToKeep,]
+
+## euler diagram -----
+padjVal=0.05
+lfcVal=0.5
+
+# all significant lfc>0.5 autosomal arm up genes
+ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
+                                    chrRegionType %in% c("arm","tip"),
+                                   seqnames %in% seqnames(Celegans)[1:5],
+                                   padj<padjVal,log2FoldChange>lfcVal)
+
+ss$group<-droplevels(ss$group)
+
+table(ss$group)
+
+for(g in levels(ss$group)){
+  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/txt/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms.txt"),row.names=F, quote=F,col.names=F)
+}
+
+# all significant lfc>0.5 autosomal arm up genes with triple peaks
+ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
+                                   chrRegionType %in% c("arm","tip"),
+                                   seqnames %in% seqnames(Celegans)[1:5],
+                                   padj<padjVal,log2FoldChange>lfcVal,
+                                   peakTypeNumber==3)
+
+ss$group<-droplevels(ss$group)
+
+table(ss$group)
+
+for(g in levels(ss$group)){
+  write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/txt/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms_triplePeaks.txt"),row.names=F, quote=F,col.names=F)
+}
