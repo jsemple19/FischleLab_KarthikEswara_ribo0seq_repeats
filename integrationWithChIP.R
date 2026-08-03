@@ -365,6 +365,7 @@ padjVal=0.05
 lfcVal=0.5
 
 dir.create(paste0(workDir,runName,"/custom/GO"),showWarnings=F)
+dir.create(paste0(workDir,runName,"/custom/bed"),showWarnings=F)
 
 ### all significant lfc>0.5 autosomal arm up genes
 ss<-res |> data.frame() |>  filter(res$group %in% contrasts$id,
@@ -376,8 +377,15 @@ ss$group<-droplevels(ss$group)
 
 table(ss$group)
 
+forBed<-GRanges(ss)
+forBed$name<-forBed$gene_id
+forBed$score<- forBed$log2FoldChange #-log10(forBed$padj)
+
 for(g in levels(ss$group)){
   write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/GO/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms.txt"),row.names=F, quote=F,col.names=F)
+  print(length(forBed[forBed$group==g]))
+  forBed_sorted <- forBed[order(mcols(forBed)$score, decreasing = TRUE)]
+  export.bed(forBed_sorted[forBed_sorted$group==g],paste0(workDir,runName,"/custom/bed/",g,"__sigUp_autosomalArms_lfcSorted.bed"))
 }
 
 ### all significant lfc>0.5 autosomal arm up genes with triple peaks
@@ -391,15 +399,16 @@ ss$group<-droplevels(ss$group)
 
 table(ss$group)
 
-forBed<-GRanges(ss)
-forBed$name<-forBed$gene_id
-forBed$score<-forBed$log2FoldChange
+# forBed<-GRanges(ss)
+# forBed$name<-forBed$gene_id
+# forBed$score<- -log10(forBed$padj)
 
 dir.create(paste0(workDir,runName,"/custom/bed"),showWarnings=F)
 
 for(g in levels(ss$group)){
   write.table(ss$gene_id[ss$group==g],paste0(workDir,runName,"/custom/GO/",g,"_upGenes_padj0.05_lfc0.5_autosomal_arms_triplePeaks.txt"),row.names=F, quote=F,col.names=F)
-  print(length(forBed[forBed$group==g]))
-  export.bed(forBed[forBed$group==g],paste0(workDir,runName,"/custom/bed/",g,"__sigUp_autosomalArms_triplePeaks.bed"))
+  # print(length(forBed[forBed$group==g]))
+  # forBed_sorted <- forBed[order(mcols(forBed)$score, decreasing = TRUE)]
+  # export.bed(forBed_sorted[forBed_sorted$group==g],paste0(workDir,runName,"/custom/bed/",g,"__sigUp_autosomalArms_triplePeaks_mlogpadjSorted.bed"))
 }
 

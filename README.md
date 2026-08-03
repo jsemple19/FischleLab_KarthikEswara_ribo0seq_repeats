@@ -17,9 +17,9 @@ RNAseq samples were downloaded from ENA usig a list of ids recovered from the da
 
 **upreguledGenesOnArms.R** - boxplots, violin plots and heatmaps of expression of genes on autosomal arms. 
 
-**integrationWithChIP.R** - euler plot of autosomal arm genes and their overlap with ChIPseq peaks of HPL-2, LIN-61 and H3K9me2. Boxplot and violin plot of gene expression of those autosomal arm genes that overlap chipseq peaks of all three types. Also produces lists of gene names of significantly upregulated genes on autosomal arms (in general, or those overlapping all three chipseq peak types) for running GO analysis; and bed files of significantly upregulated genes on autosomal arms with triple peaks for deeptools.
+**integrationWithChIP.R** - euler plot of autosomal arm genes and their overlap with ChIPseq peaks of HPL-2, LIN-61 and H3K9me2. Boxplot and violin plot of gene expression of those autosomal arm genes that overlap chipseq peaks of all three types. Also produces lists of gene names of significantly upregulated genes on autosomal arms (in general, or those overlapping all three chipseq peak types) for running GO analysis; and bed files of significantly upregulated genes on autosomal arms for deeptools.
 
-**deeptools_sigGenes_v_ChIP.sh** - creates heatmaps with deeptools of HPL-2 LIN-61 and H3K9me2 ChIPseq signal (from GSE271919) over upregulated gene on autosomal arms with triple peaks.
+**deeptools_sigGenes_v_ChIP.sh** - creates heatmaps with deeptools of HPL-2 LIN-61 and H3K9me2 ChIPseq signal (from GSE271919) over significantly upregulated genes on autosomal arms.
 
 **functions_finalFigures.R** - some functions used by plotting scripts.
 
