@@ -52,7 +52,6 @@ samplesheet<-read.csv(paste0(workDir,"/samplesheet_all.csv"),sep=",",header=T)
 
 dfamFam<-read.delim(paste0(serverPath,"/publicData/genomes/dfam35/repeatFamilies.tsv"),header=T,sep="\t")
 dfamFam$classification<-NULL
-#rmsk<-import("/Volumes/external.data/MeisterLab/FischleLab_KarthikEswara/ribo0seq_squire/ce11_rmsk_TE.gtf")
 
 ## collect counts
 countsTable<-NULL
@@ -75,11 +74,10 @@ for(i in 1:length(samplesheet$sample)){
 dir.create(paste0(workDir,runName,"/txt"),showWarnings = F)
 write.table(countsTable,paste0(workDir,runName,"/txt/allCounts.tsv"))
 
-# sum counts per rptName
+# sum counts per repeat family
 rpts<-countsTable[!grepl("WBGene",countsTable$gene_id),]
 rpts$gene_id<-gsub("_rpt.*$","",rpts$gene_id)
-#rpts$gene_id<-gsub("-I_CE","_CE",rpts$gene_id)
-#rpts$gene_id<-gsub("-LTR_CE","_CE",rpts$gene_id)
+
 rptFam<-tibble(rpts) %>% group_by(gene_id) %>%
   summarise(across(everything(),\(x) sum(x,na.rm=T)),countRpt=n()) %>% as.data.frame()
 
@@ -89,17 +87,12 @@ dfamFam$classification<-NULL
 rptFam<-left_join(rptFam,dfamFam,by=join_by("gene_id"=="name"))
 row.names(rptFam)<-rptFam$gene_id
 
-#rptFam[is.na(rptFam)]<-0
-
 
 # do DESeq2 on repeat families
 results<-NULL
 #i=2
 for(i in 1:nrow(contrasts)){
   contrast<-contrasts$id[i]
-  # if(contrast %in% c("lin61_vs_N2","lin61_vs_HPL2GFP__lin61")){
-  #   next()
-  # }
   print(contrast)
   ctrl<-contrasts$reference[i]
   treat<-contrasts$target[i]
@@ -108,7 +101,6 @@ for(i in 1:nrow(contrasts)){
   tmpss<-samplesheet[samplesheet$strain %in% c(ctrl,treat),]
   tmpss<-tmpss[!duplicated(tmpss$sample),]
   tmpss<-tmpss[match(colnames(rptFam)[colnames(rptFam) %in% tmpss$sample], tmpss$sample),]
-  #rownames(tmpss)<-tmpss$sample
   tmpss$replicate<-factor(tmpss$replicate)
   tmpss$strain<-factor(tmpss$strain)
 
@@ -122,8 +114,7 @@ for(i in 1:nrow(contrasts)){
   res$strain<-contrast
   res$gene_id<-rownames(res)
   res<-left_join(data.frame(res),dfamFam,by=join_by("gene_id"=="name"))
-  #res$famSize<-rptFam$count.y
-  #res$avgLength<-rptFam$avgLength
+
   if(is.null(results)){
     results<-res
   } else {

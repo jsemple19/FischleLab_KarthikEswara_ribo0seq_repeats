@@ -20,12 +20,21 @@ gtfFile=${genomeDir}/${genomeVer}/c_elegans.PRJNA13758.${genomeVer}.canonical_ge
 WORK_DIR=/mnt/meister.data/FischleLab_KarthikEswara/ribo0seq
 CONFIG_FILE=/mnt/meister.data/nf-core/unibe_izb.config
 #SRR_FILE=${WORK_DIR}/SRR_file.csv
-lfcShrink=false
+lfcShrink=true
 minAbund=5
 minSamples=3
+removeOutliers=true
+removeRepeats=true
+
 
 suffix="noShrink"
 $lfcShrink && suffix="lfcShrink"
+$removeOutliers && suffix=${suffix}_noRR_noSP
+$removeRepeats && suffix=${suffix}_noRpts
+
+table_suffix=""
+$removeOutliers && table_suffix=${table_suffix}_noRR_noSP
+$removeRepeats && table_suffix=${table_suffix}_noRpts
 
 ALIGNER="star" # should be one of kallisto, salmon or star
 case "$ALIGNER" in
@@ -47,13 +56,13 @@ esac
 echo "Using aligner: $ALIGNER with $TABLE_PATH"
 
 
-runName=da3_${ALIGNER}_canonical_minAbund${minAbund}_minSamples${minSamples}_${suffix}
+runName=da1_${ALIGNER}_canonical_minAbund${minAbund}_minSamples${minSamples}_${suffix}
 
 
 samplesheet=${WORK_DIR}/samplesheet_all.csv
 contrasts=${WORK_DIR}/contrasts.csv
-matrix=${WORK_DIR}/${TABLE_PATH}.merged.gene_counts.tsv
-txptlength=${WORK_DIR}/${TABLE_PATH}.merged.gene_lengths.tsv
+matrix=${WORK_DIR}/${TABLE_PATH}.merged.gene_counts${table_suffix}.tsv
+txptlength=${WORK_DIR}/${TABLE_PATH}.merged.gene_lengths${table_suffix}.tsv
 
 nextflow run nf-core/differentialabundance -profile rnaseq,singularity --input ${samplesheet} --outdir ${WORK_DIR}/${runName} \
         -r 2.0.0 -c $CONFIG_FILE \

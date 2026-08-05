@@ -38,7 +38,7 @@ serverPath="/Volumes/meister.data"
 #serverPath="Z:/MeisterLab"
 
 workDir=paste0(serverPath,"/FischleLab_KarthikEswara/ribo0seq")
-runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink"
+runName="/_2_raptorAgePrior_star_canonical_minAbund5_minSamples3_noRR_noSP_noRpts"
 
 source(paste0(workDir,"/functions_finalFigures.R"))
 
@@ -46,7 +46,6 @@ batch="N2"
 #batch="EM88"
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
-
 
 if(batch == "N2"){
   contrastsToKeep<-c(3,4,1)
@@ -67,8 +66,8 @@ dir.create(paste0(workDir,runName,"/custom/upregulatedOnArms"), showWarnings = F
 
 #arms vs center Rockman (2009)
 domains<-read.delim(paste0(serverPath,"/publicData/various/Rockman_Kruglyak_2009_armsVcenter/celegans_rockman_kruglyak_2009_table1_domains_ce11_bp.tsv"))
-rockman<-GRanges(domains)
-seqlevelsStyle(rockman)<-"UCSC"
+domaingr<-GRanges(domains)
+seqlevelsStyle(domaingr)<-"UCSC"
 
 ## data -------
 results<-readRDS(paste0(workDir,runName,"/custom/rds/.results_annotated.RDS"))
@@ -261,9 +260,9 @@ results<-readRDS(paste0(workDir,runName,"/custom/rds/.results_annotated.RDS"))
 
 gr<-tableToGranges(results,sort=FALSE)
 seqlevelsStyle(gr)<-"UCSC"
-ol<-findOverlaps(resize(gr,width=1,fix="start"),rockman,ignore.strand=T)
-gr$DomainType[queryHits(ol)] <- paste0(rockman$DomainType[subjectHits(ol)])
-gr$chrRegion[queryHits(ol)] <- paste0(seqnames(rockman)[subjectHits(ol)],"_",rockman$DomainType[subjectHits(ol)])
+ol<-findOverlaps(resize(gr,width=1,fix="start"),domaingr,ignore.strand=T)
+gr$DomainType[queryHits(ol)] <- paste0(domaingr$DomainType[subjectHits(ol)])
+gr$chrRegion[queryHits(ol)] <- paste0(seqnames(domaingr)[subjectHits(ol)],"_",domaingr$DomainType[subjectHits(ol)])
 
 res<-as.data.frame(gr)
 ss<-res %>% filter(group %in% contrasts$id,

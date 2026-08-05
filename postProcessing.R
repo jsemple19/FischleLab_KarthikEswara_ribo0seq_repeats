@@ -29,7 +29,7 @@ theme_set(
 serverPath="/Volumes/meister.data"
 #serverPath="Z:/MeisterLab"
 workDir=paste0(serverPath,"/FischleLab_KarthikEswara/ribo0seq")
-runName="/da3_star_canonical_minAbund5_minSamples3_noShrink"
+runName="/_2_raptorAgePrior_star_canonical_minAbund5_minSamples3_noRR_noSP_noRpts"
 prefix=""
 
 setwd(workDir)
@@ -77,6 +77,7 @@ gtf<-sort(gtf)
 ## annotate results tables -----
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
+contrasts<-contrasts[contrasts$id!="EM38_vs_N2",]
 
 annotate_results(gtf,path=paste0(workDir,runName),pattern="\\.deseq2\\.results\\.tsv")
 

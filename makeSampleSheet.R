@@ -8,10 +8,9 @@ workDir<-"/Volumes/meister.data/FischleLab_KarthikEswara/ribo0seq"
 setwd(workDir)
 dir.create(workDir,showWarnings=F, recursive=T)
 
-# download metadata from ENA PRJEB102446
-#df<-read.delim(paste0(workDir,"/filereport_read_run_PRJEB102446.tsv"))
+
 ss<-read.csv(paste0(workDir,"/samplesheet/samplesheet.csv"))
-#ids<-read.csv(paste0(workDir,"/samplesheet/id_mappings.csv"))
+
 ss$fastq_1<-gsub("jsemple","FischleLab_KarthikEswara",ss$fastq_1)
 ss$fastq_2<-gsub("jsemple","FischleLab_KarthikEswara",ss$fastq_2)
 
