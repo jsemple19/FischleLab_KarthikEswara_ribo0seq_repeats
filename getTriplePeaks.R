@@ -15,6 +15,12 @@ theme_set(
     )
 )
 
+### find chip seq peaks that overlap between HPL-2 LIN-61 and H3K9me2
+### In the end these peaks were not used, but rather genes that overlap all
+### three types of peaks (but any given peak does not necessarily contain all three,
+### though in reality there is a lot of overlap)
+
+
 serverPath="/Volumes/meister.data"
 #serverPath="Z:/MeisterLab"
 

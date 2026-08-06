@@ -39,7 +39,7 @@ serverPath="/Volumes/meister.data"
 #serverPath="Z:/MeisterLab"
 
 workDir=paste0(serverPath,"/FischleLab_KarthikEswara/ribo0seq")
-runName="/_2_raptorAgePrior_star_canonical_minAbund5_minSamples3_noRR_noSP_noRpts"
+runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink_noRR_noSP_noRpts"
 
 source(paste0(workDir,"/functions_finalFigures.R"))
 

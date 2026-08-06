@@ -1,17 +1,14 @@
-#! /usr/bin/bash
-#SBATCH --time=0-08:00:00
-#SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=2
+#! /bin/bash
 
 source $CONDA_ACTIVATE deeptools
 
-serverPath=/mnt/meister.data
+serverPath=/Volumes/meister.data
 workDir=${serverPath}/FischleLab_KarthikEswara/ribo0seq
 runName=da1_star_canonical_minAbund5_minSamples3_lfcShrink_noRR_noSP_noRpts
 regionData="autosomalArms_lfcSorted"
 chipData="publicChIPseq"
 sortRegions="descend" #descend, ascend or no
-redoMatrix=false # set to true the first time, but if just want to change plot parameters, set to false
+redoMatrix=true
 outDir=${workDir}/${runName}/custom/deeptools_upGenes
 mkdir -p $outDir
 
@@ -42,6 +39,7 @@ upRegEM88=( `ls ${workDir}/${runName}/custom/bed/*_vs_EM88__sigUp_${regionData}.
 upRegNamesEM88=( `basename -a ${upRegEM88[@]} | awk -F"__" '{print $1}'` )
 
 
+SLURM_NTASKS=2
 echo "number of tasks: " $SLURM_NTASKS
 
 ## compute matrix
@@ -80,9 +78,18 @@ if $redoMatrix; then
             --verbose
 fi
 
+# multiBigwigSummary BED-file --bwfiles ${bwPaths[@]} --BED $activeEnhancers_fountain \
+#     --outRawCounts matrix_enhVhistoneModEncode_avrRaw.tab -o matrix_enhVhistoneModEncode_avrRaw.npz \
+#     --numberOfProcessors 4
 
+# maxs=( `awk 'NR > 1 { for (i = 4; i <= NF; i++) { if ($i > max[i]) max[i] = $i+0 } } END { for (i = 4; i <= NF; i++) print max[i]/2+0 }' matrix_enhVhistoneModEncode_avrRaw.tab` )
+#maxs=( 30 `printf ' 2 %.0s' {1..21}` )
+#mins=( `printf ' -2 %.0s' {1..22}` )
+#maxs=( 40 150 700 )
 maxs=( 20 20 20 )
 mins=( `printf ' 0 %.0s' {1..3}` )
+
+
 
 ## make plots
 echo "plotting heatmap"
@@ -116,3 +123,14 @@ plotHeatmap -m ${outDir}/matrix_${regionData}_upEM88_${chipData}.mat.gz \
       --sortRegions ${sortRegions} \
       --sortUsingSamples 1
 
+# plotProfile -m ${outDir}/matrix_${regionData}_${chipData}.mat.gz  \
+#               -out ${outDir}/${regionData}_${chipData}_profile.png \
+#               --numPlotsPerRow 5 \
+#               --regionsLabel "upReg" "downReg" \
+#               --startLabel "prom" --endLabel "" \
+#               --colors "cyan" "magenta" "brown" "grey" \
+#               --yMax ${maxs[@]} \
+#               --yMin ${mins[@]} \
+#               --samplesLabel ${bwNames[@]} \
+# 	      --outFileNameData ${outDir}/${regionData}_${chipData}_profile.tab \
+#               --plotTitle "Promoters of COH-1 regulated genes"
