@@ -2,6 +2,7 @@
 # volcano plots and heatmaps
 
 library(GenomicRanges)
+library(GenomeInfoDb)
 library(rtracklayer)
 library(ggplot2)
 library(dplyr)
@@ -42,7 +43,7 @@ runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink_noRR_noSP_noRpts"
 
 source(paste0(workDir,"/functions_finalFigures.R"))
 
-batch="N2"
+batch="EM88"
 #batch="EM88"
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
@@ -83,6 +84,14 @@ res<-res[res$seqnames != "chrM",]
 saveRDS(res,paste0(workDir,runName,"/custom/rds/",prefix,"_regionType.results_annotated.RDS"))
 contrasts
 
+# to get numbers for text
+res |> filter(DomainType %in% c("arm","tip"),seqnames!="chrX") |>
+  group_by(group) |> summarise(count=n())
+
+res |> filter(DomainType %in% c("arm","tip"),seqnames!="chrX") |>
+  mutate(coding=ifelse(gene_biotype=="protein_coding","pc","nc")) |>
+  group_by(group,coding) |> summarise(count=n())
+
 lfcVal=0.5
 padjVal=0.05
 
@@ -96,7 +105,6 @@ ss<-res %>% filter(group %in% contrasts$id,
 ss$group<-factor(ss$group,levels=contrasts$id)
 table(ss$seqnames,ss$group)
 table(ss$group)
-
 
 # keep values in all samples for genes significant in at least one
 genesToKeep<-unique(ss$gene_id)
@@ -117,6 +125,15 @@ direction<-"up"
 numSamplesSignificant=1
 
 res<-readRDS(paste0(workDir,runName,"/custom/rds/",prefix,"_subsetByGene.results_annotated.RDS"))
+
+# to get numbers for text
+res |> filter(DomainType %in% c("arm","tip"),seqnames!="chrX") |> f
+  group_by(group) |> summarise(count=n())
+
+res |> filter(DomainType %in% c("arm","tip"),seqnames!="chrX") |>
+  mutate(coding=ifelse(gene_biotype=="protein_coding","pc","nc")) |>
+  group_by(group,coding) |> summarise(count=n())
+
 
 mat_padj<-gatherResults(res,valueColumn="padj")
 mat_padj[is.na(mat_padj)]<-1
@@ -192,6 +209,12 @@ sapply(mat_list,nrow)
 
 ## significant genes boxplots  & violin plots -----
 res<-readRDS(paste0(workDir,runName,"/custom/rds/",prefix,"_subsetByGene.results_annotated.RDS"))
+
+# filtered <- res %>%
+#   filter(padj<0.05,
+#     (group == "EM92_vs_EM88" & log2FoldChange > 0.5) |
+#       (group == "EM91_vs_EM88" & log2FoldChange < -0.5)
+# )
 
 if(batch=="N2"){
   colorSet<-brewer.pal(nrow(contrasts), "Dark2")

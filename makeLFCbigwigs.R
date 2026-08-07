@@ -7,14 +7,15 @@ serverPath="/Volumes/meister.data"
 #serverPath="Z:/MeisterLab"
 
 workDir=paste0(serverPath,"/FischleLab_KarthikEswara/ribo0seq")
-runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink"
+runName="/da1_star_canonical_minAbund5_minSamples3_lfcShrink_noRR_noSP_noRpts"
 
 source(paste0(workDir,"/functions_finalFigures.R"))
 
-batch="N2"
+batch="EM88"
 #batch="EM88"
 
 contrasts<-read.csv(paste0(workDir,"/contrasts.csv"),sep=",",header=T)
+contrasts<-contrasts[contrasts$id!="EM38_vs_N2",]
 
 prefix=""
 
@@ -25,6 +26,7 @@ dir.create(paste0(workDir,runName,"/custom/lfcBigwigs"), showWarnings = FALSE, r
 ## data -------
 results<-readRDS(paste0(workDir,runName,"/custom/rds/.results_annotated.RDS"))
 results$padj[is.na(results$padj)]<-1
+results<-results[results$group %in% contrasts$id,]
 
 gr<-tableToGranges(results,sort=FALSE)
 seqlevelsStyle(gr)<-"UCSC"
@@ -33,15 +35,17 @@ strand(gr)<-"*"
 
 gr$score<-gr$log2FoldChange
 
+g=results$group[1]
 for(g in levels(results$group)){
+  subgr<-gr[gr$group==g]
   # Create disjoint intervals from all your ranges
-  disjoint_gr <- disjoin(gr[gr$group==g])
+  disjoint_gr <- disjoin(subgr)
 
   # For each disjoint interval, find which original genes overlap it
-  hits <- findOverlaps(disjoint_gr, gr)
+  hits <- findOverlaps(disjoint_gr, subgr)
 
   # Aggregate score per disjoint interval — choose your logic:
-  agg_score <- tapply(gr$score[subjectHits(hits)], queryHits(hits),
+  agg_score <- tapply(subgr$score[subjectHits(hits)], queryHits(hits),
                       FUN = function(x) x[which.max(abs(x))])   # or max, or which.max by baseMean, etc.
 
   disjoint_gr$score <- NA
@@ -50,3 +54,4 @@ for(g in levels(results$group)){
 
   export.bw(sort(disjoint_gr), paste0(workDir,runName,"/custom/lfcBigwigs/",g,"_log2FoldChange.bw"))
 }
+
